@@ -46,6 +46,7 @@ class WordSmapler:
         # word_list = word_list.query(f"review_date != '{date}'")
         word_list = words.query(f"test_num == 0 or date =='{date}")
         word_list = word_list.head(self.sample_size)
+        word_list = list(word_list['word'])
         return word_list
     def get_review_vocabulary(self):
         words = pd.read_excel('./data/words.xlsx')
@@ -54,29 +55,48 @@ class WordSmapler:
         review_list = words.query(f"date !='{date}'")
         review_list = review_list.sort_values(by='acc',ascending=True)
         review_list = review_list.head(self.sample_size)
+
+        review_list = list(review_list['word'])
         return review_list
 
 class WordTrainer:
     def __init__(self,word_list:list):
         self.word_list = word_list
         self.word_engine = WordEngine()
+        self.acc_calculator = EWMA()
     def train(self):
         while True:
-            word = self.word_list.pop(0)
+            word = list(self.word_list)
+
+            acc,test_num = get_excel(word,attributes=['acc','test_num'])
             explain = self.word_engine.get(word)
             answer = str(input())
+
+            test_num += 1
 
             if word != answer:
                 self.word_list.append(word)
                 print('错误')
                 print(word)
+                acc = self.acc_calculator.update(V_t=acc,theta_t=0,t=test_num)
                 modified_data = {
                     'word': word,
                     'date':datetime.date(datetime.now()),
+                    'test_num': test_num,
+                    'acc':acc
                 }
-                modify_excel(word,modified_data)
+
                 while str(input()) != word:
                     pass
+            else:
+                acc = self.acc_calculator.update(V_t=acc,theta_t=1,t=test_num)
+                modified_data = {
+                    'word': word,
+                    'date':datetime.date(datetime.now()),
+                    'test_num': test_num,
+                    'acc':acc
+                }
+            modify_excel(word, modified_data)
             print(explain)
             time.sleep(1)
 
@@ -85,6 +105,8 @@ class EWMA:
         self.sample_num = sample_num
         self.beta =math.exp(-1/self.sample_num)
     def update(self,V_t,theta_t,t):
+        # V_t : acc theta: answer is right or not t: test_num
+
         V_t = self.beta*V_t + (1-self.beta)*theta_t
         V_t = V_t/(1-self.beta**t)
         return V_t
@@ -97,6 +119,8 @@ def modify_excel(word,modified_data,excel_path ='./data/words.xlsx'):
             words.loc[word,key] = value
 
     words.to_excel(excel_path)
-
+def get_excel(word,attributes,excel_path ='./data/words.xlsx'):
+    words = pd.read_excel(excel_path,index_col=0)
+    return [words.loc[word,attr] for attr in attributes]
 if __name__ == '__main__':
     modify_excel(word='relocate',modified_data={'test_num':1})
