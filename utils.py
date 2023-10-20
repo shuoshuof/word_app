@@ -44,15 +44,16 @@ class WordSmapler:
         # word_list = words.query(f"date =='{date}'")
         # # 去除今天已经复习的单词
         # word_list = word_list.query(f"review_date != '{date}'")
-        word_list = words.query(f"test_num == 0 or date =='{date}")
+        # 提取测试次数为0 或 今天新录入的单词
+        word_list = words.query(f"test_num == 0 or date =='{date}'")
         word_list = word_list.head(self.sample_size)
         word_list = list(word_list['word'])
         return word_list
     def get_review_vocabulary(self):
         words = pd.read_excel('./data/words.xlsx')
         date = datetime.date(datetime.now())
-        # 去除今天已经复习的单词
-        review_list = words.query(f"date !='{date}'")
+        # 去除复习日期为当天的单词，即单词今天已经复习过了
+        review_list = words.query(f"review_date !='{date}'")
         review_list = review_list.sort_values(by='acc',ascending=True)
         review_list = review_list.head(self.sample_size)
 
@@ -64,9 +65,9 @@ class WordTrainer:
         self.word_list = word_list
         self.word_engine = WordEngine()
         self.acc_calculator = EWMA()
-    def train(self):
+    def dictation_train(self):
         while True:
-            word = list(self.word_list)
+            word = self.word_list.pop(0)
 
             acc,test_num = get_excel(word,attributes=['acc','test_num'])
             explain = self.word_engine.get(word)
@@ -79,9 +80,8 @@ class WordTrainer:
                 print('错误')
                 print(word)
                 acc = self.acc_calculator.update(V_t=acc,theta_t=0,t=test_num)
+                # 更改acc 和测试次数，当输入错误时，不更新复习日期
                 modified_data = {
-                    'word': word,
-                    'date':datetime.date(datetime.now()),
                     'test_num': test_num,
                     'acc':acc
                 }
@@ -91,14 +91,43 @@ class WordTrainer:
             else:
                 acc = self.acc_calculator.update(V_t=acc,theta_t=1,t=test_num)
                 modified_data = {
-                    'word': word,
-                    'date':datetime.date(datetime.now()),
+                    'review_date':datetime.date(datetime.now()),
                     'test_num': test_num,
                     'acc':acc
                 }
             modify_excel(word, modified_data)
             print(explain)
             time.sleep(1)
+    def reading_train(self):
+        while True:
+            word = self.word_list.pop(0)
+
+            acc,test_num = get_excel(word,attributes=['acc','test_num'])
+            explain = self.word_engine.get(word)
+            answer = str(input())
+
+            test_num += 1
+
+            if word != answer:
+                self.word_list.append(word)
+                print('错误')
+                print(word)
+                acc = self.acc_calculator.update(V_t=acc,theta_t=0,t=test_num)
+                # 更改acc 和测试次数，当输入错误时，不更新复习日期
+                modified_data = {
+                    'test_num': test_num,
+                    'acc':acc
+                }
+
+
+            else:
+                acc = self.acc_calculator.update(V_t=acc,theta_t=1,t=test_num)
+                modified_data = {
+                    'review_date':datetime.date(datetime.now()),
+                    'test_num': test_num,
+                    'acc':acc
+                }
+            modify_excel(word, modified_data)
 
 class EWMA:
     def __init__(self,sample_num=5):
@@ -114,7 +143,6 @@ class EWMA:
 def modify_excel(word,modified_data,excel_path ='./data/words.xlsx'):
     words = pd.read_excel(excel_path,index_col=0)
     for key,value in modified_data.items():
-        print(words.loc[word,key])
         if value is not None:
             words.loc[word,key] = value
 
@@ -123,4 +151,8 @@ def get_excel(word,attributes,excel_path ='./data/words.xlsx'):
     words = pd.read_excel(excel_path,index_col=0)
     return [words.loc[word,attr] for attr in attributes]
 if __name__ == '__main__':
-    modify_excel(word='relocate',modified_data={'test_num':1})
+    #modify_excel(word='critical',modified_data={'test_num':0})
+    word_sampler = WordSmapler()
+    word_list = word_sampler.get_new_vocabulary()
+    WordTrainer = WordTrainer(word_list)
+    WordTrainer.reading_train()

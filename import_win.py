@@ -65,7 +65,7 @@ class ImportWindow(QWidget):
 
 
             for word in import_data.index:
-                data.loc[word, :] = [datetime.date(datetime.now()), 1,None,0]
+                data.loc[word, :] = [datetime.date(datetime.now()), 0,None,0]
             print(data)
             data.date = pd.to_datetime(data.date)
             data.to_excel('./data/words.xlsx')
