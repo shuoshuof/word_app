@@ -9,6 +9,7 @@ import json, requests
 from playsound import playsound
 import os
 import time
+import keyboard
 class WordEngine:
     def __init__(self,paraphrase_url='http://dict.youdao.com/suggest?num=1&doctype=json&q=',
                  audio_url='http://dict.youdao.com/dictvoice?type=1&audio='):
@@ -66,7 +67,7 @@ class WordTrainer:
         self.word_engine = WordEngine()
         self.acc_calculator = EWMA()
     def dictation_train(self):
-        while True:
+        while len(self.word_list):
             word = self.word_list.pop(0)
 
             acc,test_num = get_excel(word,attributes=['acc','test_num'])
@@ -99,31 +100,32 @@ class WordTrainer:
             print(explain)
             time.sleep(1)
     def reading_train(self):
-        while True:
+        while len(self.word_list):
             word = self.word_list.pop(0)
 
             acc,test_num = get_excel(word,attributes=['acc','test_num'])
             explain = self.word_engine.get(word)
-            answer = str(input())
+
+            print(word)
+            input()
+            print(explain)
+            answer = str(input('是否记得？'))
 
             test_num += 1
 
-            if word != answer:
+            if answer=='y':
+                acc = self.acc_calculator.update(V_t=acc, theta_t=1, t=test_num)
+                modified_data = {
+                    'review_date': datetime.date(datetime.now()),
+                    'test_num': test_num,
+                    'acc': acc
+                }
+
+            else:
                 self.word_list.append(word)
-                print('错误')
-                print(word)
                 acc = self.acc_calculator.update(V_t=acc,theta_t=0,t=test_num)
                 # 更改acc 和测试次数，当输入错误时，不更新复习日期
                 modified_data = {
-                    'test_num': test_num,
-                    'acc':acc
-                }
-
-
-            else:
-                acc = self.acc_calculator.update(V_t=acc,theta_t=1,t=test_num)
-                modified_data = {
-                    'review_date':datetime.date(datetime.now()),
                     'test_num': test_num,
                     'acc':acc
                 }
@@ -152,7 +154,7 @@ def get_excel(word,attributes,excel_path ='./data/words.xlsx'):
     return [words.loc[word,attr] for attr in attributes]
 if __name__ == '__main__':
     #modify_excel(word='critical',modified_data={'test_num':0})
-    word_sampler = WordSmapler()
+    word_sampler = WordSmapler(sample_size=2)
     word_list = word_sampler.get_new_vocabulary()
     WordTrainer = WordTrainer(word_list)
     WordTrainer.reading_train()

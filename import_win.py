@@ -39,7 +39,7 @@ class ImportWindow(QWidget):
         self.setWindowTitle('导入单词')
         self.show()
     def slot_btn_chooseDir(self):
-        dir_choose = QtWidgets.QFileDialog.getOpenFileName(None, "选取文件夹", "")
+        dir_choose = QtWidgets.QFileDialog.getOpenFileName(None, "选取文件", "")
         print(dir_choose)
         if dir_choose == "":
             print("\n取消选择")
