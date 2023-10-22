@@ -130,7 +130,6 @@ class WordTrainer:
                     'acc':acc
                 }
             modify_excel(word, modified_data)
-
 class EWMA:
     def __init__(self,sample_num=5):
         self.sample_num = sample_num

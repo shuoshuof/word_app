@@ -6,26 +6,27 @@
 import sys
 from PyQt5.QtWidgets import *
 from qt_material import apply_stylesheet
-
+from setting_win import SettingWindow
+from utils import WordSmapler,WordTrainer
 class App(QWidget):
     def __init__(self):
         super().__init__()
         self.Init()
     def Init(self):
-        self.btn_import = QPushButton("单词导入",self)
+        self.btn_import = QPushButton("词表导入",self)
 
-        self.btn_dictation = QPushButton("单词听写",self)
+        self.btn_input = QPushButton("单词写入",self)
 
         self.btn_test = QPushButton("单词测试",self)
 
         self.btn_import.clicked.connect(self.import_words)
-        self.btn_dictation.clicked.connect(self.dictation)
+        self.btn_input.clicked.connect(self.input)
         self.btn_test.clicked.connect(self.test)
 
 
         self.Vbox = QVBoxLayout()
         self.Vbox.addWidget(self.btn_import)
-        self.Vbox.addWidget(self.btn_dictation)
+        self.Vbox.addWidget(self.btn_input)
         self.Vbox.addWidget(self.btn_test)
 
         self.Hbox = QHBoxLayout()
@@ -40,10 +41,22 @@ class App(QWidget):
 
     def import_words(self):
         pass
-    def dictation(self):
+    def input(self):
         pass
     def test(self):
-        pass
+        setting_window = SettingWindow()
+        if setting_window.exec_() == QDialog.Accepted:
+            attr = setting_window.return_attr
+
+            if attr['path'] =='':
+                word_sampler = WordSmapler(sample_size=attr['num_words'])
+
+            self.word_list = word_sampler.get_new_vocabulary()
+            word_trainer= WordTrainer(self.word_list)
+            if attr['mode'] == '听写':
+                word_trainer.dictation_train()
+            if attr['mode'] == '复习':
+                word_trainer.reading_train()
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
