@@ -11,7 +11,7 @@ from  datetime import datetime
 import pandas as pd
 from word_engine import WordEngine
 import time
-from utils import WordSmapler,WordEngine,EWMA,get_excel,modify_excel
+from utils import WordSmapler,WordEngine,EWMA,get_word,modify_word
 
 class DictationWindow():
     def __init__(self,word_list:list):
@@ -26,7 +26,7 @@ class DictationWindow():
         while len(self.word_list):
             word = self.word_list.pop(0)
 
-            acc,test_num = get_excel(word,attributes=['acc','test_num'])
+            acc,test_num = get_word(word, attributes=['acc', 'test_num'])
             explain = self.word_engine.get(word)
             answer = str(input())
 
@@ -52,7 +52,7 @@ class DictationWindow():
                     'test_num': test_num,
                     'acc':acc
                 }
-            modify_excel(word, modified_data)
+            modify_word(word, modified_data)
             print(explain)
             time.sleep(1)
 

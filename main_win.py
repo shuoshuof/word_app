@@ -47,16 +47,18 @@ class App(QWidget):
         setting_window = SettingWindow()
         if setting_window.exec_() == QDialog.Accepted:
             attr = setting_window.return_attr
-
+            word_sampler = WordSmapler(sample_size=attr['num_words'])
             if attr['path'] =='':
-                word_sampler = WordSmapler(sample_size=attr['num_words'])
+                self.word_list = word_sampler.get_new_vocabulary()
+            else:
+                self.word_list = word_sampler.get_from_file(attr['path'])
 
-            self.word_list = word_sampler.get_new_vocabulary()
             word_trainer= WordTrainer(self.word_list)
             if attr['mode'] == '听写':
                 word_trainer.dictation_train()
             if attr['mode'] == '复习':
                 word_trainer.reading_train()
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 

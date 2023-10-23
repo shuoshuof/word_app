@@ -60,6 +60,11 @@ class WordSmapler:
 
         review_list = list(review_list['word'])
         return review_list
+    def get_from_file(self,path):
+        words = pd.read_excel(path)
+        review_list = list(words['word'])
+        return review_list
+
 
 class WordTrainer:
     def __init__(self,word_list:list):
@@ -70,7 +75,7 @@ class WordTrainer:
         while len(self.word_list):
             word = self.word_list.pop(0)
 
-            acc,test_num = get_excel(word,attributes=['acc','test_num'])
+            acc,test_num = get_word(word, attributes=['acc', 'test_num'])
             explain = self.word_engine.get(word)
             answer = str(input())
 
@@ -96,14 +101,14 @@ class WordTrainer:
                     'test_num': test_num,
                     'acc':acc
                 }
-            modify_excel(word, modified_data)
+            modify_word(word, modified_data)
             print(explain)
             time.sleep(1)
     def reading_train(self):
         while len(self.word_list):
             word = self.word_list.pop(0)
 
-            acc,test_num = get_excel(word,attributes=['acc','test_num'])
+            acc,test_num = get_word(word, attributes=['acc', 'test_num'])
             explain = self.word_engine.get(word)
 
             print(word)
@@ -129,7 +134,7 @@ class WordTrainer:
                     'test_num': test_num,
                     'acc':acc
                 }
-            modify_excel(word, modified_data)
+            modify_word(word, modified_data)
 class EWMA:
     def __init__(self,sample_num=5):
         self.sample_num = sample_num
@@ -141,19 +146,23 @@ class EWMA:
         V_t = V_t/(1-self.beta**t)
         return V_t
 
-def modify_excel(word,modified_data,excel_path ='./data/words.xlsx'):
+def modify_word(word, modified_data, excel_path ='./data/words.xlsx'):
     words = pd.read_excel(excel_path,index_col=0)
     for key,value in modified_data.items():
         if value is not None:
             words.loc[word,key] = value
-
     words.to_excel(excel_path)
-def get_excel(word,attributes,excel_path ='./data/words.xlsx'):
-    words = pd.read_excel(excel_path,index_col=0)
-    return [words.loc[word,attr] for attr in attributes]
+def get_word(word, attributes, excel_path ='./data/words.xlsx'):
+    words = pd.read_excel(excel_path, index_col=0)
+    try:
+        return [words.loc[word,attr] for attr in attributes]
+    except:
+        words.loc[word, :] = [datetime.date(datetime.now()), 0,None,0]
+        return [words.loc[word,attr] for attr in attributes]
 if __name__ == '__main__':
     #modify_excel(word='critical',modified_data={'test_num':0})
-    word_sampler = WordSmapler(sample_size=2)
-    word_list = word_sampler.get_new_vocabulary()
-    WordTrainer = WordTrainer(word_list)
-    WordTrainer.reading_train()
+    # word_sampler = WordSmapler(sample_size=2)
+    # word_list = word_sampler.get_new_vocabulary()
+    # WordTrainer = WordTrainer(word_list)
+    # WordTrainer.reading_train()
+    print(get_word(word='aaa',attributes=['date', 'acc','review_date','test_num']))

@@ -12,7 +12,7 @@ from  datetime import datetime
 import pandas as pd
 from word_engine import WordEngine
 import time
-from utils import WordSmapler,WordEngine,EWMA,get_excel,modify_excel
+from utils import WordSmapler,WordEngine,EWMA,get_word,modify_word
 from PyQt5.QtCore import pyqtSignal
 class SettingWindow(QDialog):
     return_dict = pyqtSignal(dict)
@@ -43,6 +43,9 @@ class SettingWindow(QDialog):
         self.dictation_btn.toggled.connect(self.buttonState)
         self.reading_btn.toggled.connect(self.buttonState)
 
+        self.train_mode = QComboBox(self)
+        self.train_mode.addItem('新词')
+        self.train_mode.addItem('错词')
 
         # self.button_group = QButtonGroup(self)
         # self.button_group.addButton(self.dictation_mode,11)
@@ -56,10 +59,11 @@ class SettingWindow(QDialog):
 
         self.gbox.addWidget(self.dictation_btn,1,2,1,1)
         self.gbox.addWidget(self.reading_btn,1,3,1,1)
-        self.gbox.addWidget(btn_submit,2,1,1,1)
+        self.gbox.addWidget(self.train_mode,2, 0, 1, 1)
+        self.gbox.addWidget(btn_submit,2,2,1,1)
         self.setLayout(self.gbox)
 
-        self.setGeometry(300, 200,400, 400)
+        self.setGeometry(300, 300,400, 400)
         self.setWindowTitle('复习设置')
         self.show()
     def buttonState(self):
@@ -77,8 +81,10 @@ class SettingWindow(QDialog):
     def sumbit(self):
         path = self.list_dir.text()
         num_words = int(self.num_words.text())
+        train_mode = self.train_mode.currentText()
+        print(train_mode)
         print(path)
-        self.return_attr = {"path": path, "num_words": int(num_words),"mode": self.mode}
+        self.return_attr = {"path": path, "num_words": int(num_words),"mode": self.mode,'train_mode':train_mode}
         self.accept()
 if __name__ == "__main__":
     app = QApplication(sys.argv)
