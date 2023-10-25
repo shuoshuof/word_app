@@ -63,7 +63,6 @@ class App(QWidget):
                 word_trainer.dictation_train()
             if attr['mode'] == '阅读':
                 word_trainer.reading_train()
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
