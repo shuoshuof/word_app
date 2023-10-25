@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import *
 from qt_material import apply_stylesheet
 from setting_win import SettingWindow
 from utils import WordSmapler,WordTrainer
+from import_win import ImportWindow
 class App(QWidget):
     def __init__(self):
         super().__init__()
@@ -40,7 +41,8 @@ class App(QWidget):
         self.show()
 
     def import_words(self):
-        pass
+        self.import_window = ImportWindow()
+        self.import_window.exec()
     def input(self):
         pass
     def test(self):
@@ -49,14 +51,17 @@ class App(QWidget):
             attr = setting_window.return_attr
             word_sampler = WordSmapler(sample_size=attr['num_words'])
             if attr['path'] =='':
-                self.word_list = word_sampler.get_new_vocabulary()
+                if attr['train_mode'] == '新词':
+                    self.word_list = word_sampler.get_new_vocabulary()
+                if attr['train_mode'] == '错词':
+                    self.word_list = word_sampler.get_review_vocabulary()
             else:
                 self.word_list = word_sampler.get_from_file(attr['path'])
 
             word_trainer= WordTrainer(self.word_list)
             if attr['mode'] == '听写':
                 word_trainer.dictation_train()
-            if attr['mode'] == '复习':
+            if attr['mode'] == '阅读':
                 word_trainer.reading_train()
 
 if __name__ == "__main__":

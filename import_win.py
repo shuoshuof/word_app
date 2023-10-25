@@ -9,7 +9,7 @@ from PyQt5 import QtCore, QtWidgets
 import os
 import pandas as pd
 from  datetime import datetime
-class ImportWindow(QWidget):
+class ImportWindow(QDialog):
     def __init__(self):
         super().__init__()
         self.Init()
@@ -70,7 +70,7 @@ class ImportWindow(QWidget):
             data.date = pd.to_datetime(data.date)
             data.to_excel('./data/words.xlsx')
 
-
+        self.close()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -36,8 +36,7 @@ class SettingWindow(QDialog):
 
         self.dictation_btn = QRadioButton("听写",self)
         self.dictation_btn.setChecked(True)
-
-        self.reading_btn = QRadioButton("复习",self)
+        self.reading_btn = QRadioButton("阅读",self)
 
         self.mode = "听写"
         self.dictation_btn.toggled.connect(self.buttonState)
@@ -56,11 +55,11 @@ class SettingWindow(QDialog):
         self.gbox.addWidget(btn_ChooseDir, 0, 3, 1, 1)
         self.gbox.addWidget(label,1,0,1,1)
         self.gbox.addWidget(self.num_words,1,1,1,1)
+        self.gbox.addWidget(self.train_mode, 1, 3, 1, 1)
+        self.gbox.addWidget(self.dictation_btn,2,0,1,1)
+        self.gbox.addWidget(self.reading_btn,2,1,1,1)
 
-        self.gbox.addWidget(self.dictation_btn,1,2,1,1)
-        self.gbox.addWidget(self.reading_btn,1,3,1,1)
-        self.gbox.addWidget(self.train_mode,2, 0, 1, 1)
-        self.gbox.addWidget(btn_submit,2,2,1,1)
+        self.gbox.addWidget(btn_submit,2,3,1,1)
         self.setLayout(self.gbox)
 
         self.setGeometry(300, 300,400, 400)
@@ -82,8 +81,6 @@ class SettingWindow(QDialog):
         path = self.list_dir.text()
         num_words = int(self.num_words.text())
         train_mode = self.train_mode.currentText()
-        print(train_mode)
-        print(path)
         self.return_attr = {"path": path, "num_words": int(num_words),"mode": self.mode,'train_mode':train_mode}
         self.accept()
 if __name__ == "__main__":

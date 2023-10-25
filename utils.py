@@ -32,8 +32,11 @@ class WordEngine:
         with open('./audio.mp3', 'wb') as file:  # 保存到本地的文件名
             file.write(sound_bytes)
             file.flush()
-        playsound('./audio.mp3')
-        os.remove('./audio.mp3')
+        try:
+            playsound('./audio.mp3')
+            os.remove('./audio.mp3')
+        except:
+            print("音频错误")
 
 class WordSmapler:
     def __init__(self,sample_size=50):
@@ -53,8 +56,9 @@ class WordSmapler:
     def get_review_vocabulary(self):
         words = pd.read_excel('./data/words.xlsx')
         date = datetime.date(datetime.now())
-        # 去除复习日期为当天的单词，即单词今天已经复习过了
-        review_list = words.query(f"review_date !='{date}'")
+        # 去除复习日期为当天的单词，即单词今天已经复习过了 以及没有学习过的单词
+        # review_list = words.query(f"review_date !='{date}' and test_num !=0")
+        review_list = words.query(f"test_num !=0")
         review_list = review_list.sort_values(by='acc',ascending=True)
         review_list = review_list.head(self.sample_size)
 
@@ -103,7 +107,7 @@ class WordTrainer:
                 }
             modify_word(word, modified_data)
             print(explain)
-            time.sleep(1)
+        print('听写完成')
     def reading_train(self):
         while len(self.word_list):
             word = self.word_list.pop(0)
@@ -135,6 +139,7 @@ class WordTrainer:
                     'acc':acc
                 }
             modify_word(word, modified_data)
+        print('复习完成')
 class EWMA:
     def __init__(self,sample_num=5):
         self.sample_num = sample_num
@@ -143,7 +148,7 @@ class EWMA:
         # V_t : acc theta: answer is right or not t: test_num
 
         V_t = self.beta*V_t + (1-self.beta)*theta_t
-        V_t = V_t/(1-self.beta**t)
+        # V_t = V_t/(1-self.beta**t)
         return V_t
 
 def modify_word(word, modified_data, excel_path ='./data/words.xlsx'):

@@ -23,14 +23,15 @@ class WordEngine:
         with open('./audio.mp3', 'wb') as file:  # 保存到本地的文件名
             file.write(sound_bytes)
             file.flush()
-        playsound('./audio.mp3')
-        os.remove('./audio.mp3')
-
+        try:
+            playsound('./audio.mp3')
+            os.remove('./audio.mp3')
+        except:
+            print("音频错误")
 if __name__ == '__main__':
     paraphrase_url = 'http://dict.youdao.com/suggest?num=1&doctype=json&q='
     audio_url = 'http://dict.youdao.com/dictvoice?type=1&audio='
 
     engine = WordEngine(paraphrase_url,audio_url)
 
-    for word in ['a','b']:
-        engine.get(word)
+    engine.get('successive')
